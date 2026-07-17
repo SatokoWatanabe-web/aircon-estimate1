@@ -257,7 +257,23 @@
       font-weight:800;
     }
     .status{color:#fff;min-height:22px;margin-top:8px;font-size:13px}
+    .presentation-only{display:none}
+    .presentation-back{
+      position:sticky;
+      top:6px;
+      z-index:50;
+      width:max-content;
+      margin:0 0 8px;
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:9px 12px;
+      background:#fff;
+      color:var(--navy);
+      font-weight:900;
+      box-shadow:0 4px 14px rgba(15,42,76,.15);
+    }
 
+    body.presentation .presentation-only{display:block}
     body.presentation .edit-only,
     body.presentation .quick,
     body.presentation .unit-actions,
@@ -330,6 +346,7 @@
     </div>
   </header>
 
+  <button id="presentationBackBtn" class="presentation-only presentation-back">← 見積編集に戻る</button>
   <section id="plans" class="plans"></section>
   <div id="status" class="status"></div>
 
@@ -340,7 +357,7 @@
 </main>
 
 <script>
-const STORAGE_KEY = "aircon-estimate-v3";
+const STORAGE_KEY = "aircon-estimate-v4";
 const CAPACITIES = ["2.2","2.5","2.8","3.6","4.0","5.6","6.3"];
 const TATAMI = {
   "2.2":"6畳用","2.5":"8畳用","2.8":"10畳用",
@@ -731,10 +748,17 @@ document.getElementById("savedList").addEventListener("click",e => {
   }
 });
 
-document.getElementById("presentationBtn").addEventListener("click",() => {
-  document.body.classList.toggle("presentation");
+function setPresentationMode(enabled){
+  document.body.classList.toggle("presentation", enabled);
   document.getElementById("presentationBtn").textContent =
-    document.body.classList.contains("presentation") ? "編集画面に戻る" : "プレゼン表示";
+    enabled ? "編集画面に戻る" : "プレゼン表示";
+}
+
+document.getElementById("presentationBtn").addEventListener("click",() => {
+  setPresentationMode(!document.body.classList.contains("presentation"));
+});
+document.getElementById("presentationBackBtn").addEventListener("click",() => {
+  setPresentationMode(false);
 });
 document.getElementById("printBtn").addEventListener("click",() => window.print());
 document.getElementById("resetBtn").addEventListener("click",() => {
