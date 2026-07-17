@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>エアコン概算見積もり Ver.2</title>
+  <title>エアコン概算見積もり Ver.3</title>
   <style>
     :root{
       --navy:#102a4c;
@@ -300,7 +300,7 @@
 <main class="app">
   <header class="topbar">
     <div>
-      <h1>エアコン概算見積もり Ver.2</h1>
+      <h1>エアコン概算見積もり Ver.3</h1>
       <p class="subtitle">「新規／買替え」「畳数」「本体価格」の3入力で概算を作成</p>
     </div>
     <div class="top-actions edit-only">
@@ -322,7 +322,7 @@
 </main>
 
 <script>
-const STORAGE_KEY = "aircon-estimate-v2";
+const STORAGE_KEY = "aircon-estimate-v3";
 const CAPACITIES = ["2.2","2.5","2.8","3.6","4.0","5.6","6.3"];
 const TATAMI = {
   "2.2":"6畳用","2.5":"8畳用","2.8":"10畳用",
@@ -336,22 +336,20 @@ const BASE_ROWS = ["本体","工事費用","保証","取り外し費用","リサ
 const MAX_UNITS = 10;
 
 function blankUnit(index){
-  const type = "replacement";
+  const type = "new";
   return {
     title: `${index}台目`,
     type,
     capacity: "",
     rows: BASE_ROWS.map(name => ({
       name,
-      amount:
-        name === "取り外し費用" ? "6600" :
-        name === "リサイクル" ? "4070" : "",
-      enabled: true
+      amount: "",
+      enabled: !["取り外し費用","リサイクル"].includes(name)
     }))
   };
 }
 function blankPlan(name){
-  return { title:name, units:[blankUnit(1),blankUnit(2),blankUnit(3)] };
+  return { title:name, units:[blankUnit(1)] };
 }
 let state = {
   plans:[blankPlan("プランA"),blankPlan("プランB"),blankPlan("プランC")]
