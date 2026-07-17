@@ -282,8 +282,26 @@
       padding-right:2px;
     }
 
-    @media (max-width:980px){
-      .plans{grid-template-columns:1fr}
+    /* 縦画面：1プランずつ表示し、左右スワイプで切り替え */
+    @media (max-width:980px) and (orientation:portrait){
+      .plans{
+        display:flex;
+        overflow-x:auto;
+        gap:10px;
+        scroll-snap-type:x mandatory;
+        scroll-behavior:smooth;
+        overscroll-behavior-x:contain;
+        -webkit-overflow-scrolling:touch;
+        scrollbar-width:none;
+        touch-action:pan-x pan-y;
+      }
+      .plans::-webkit-scrollbar{display:none}
+      .plan{
+        flex:0 0 100%;
+        width:100%;
+        scroll-snap-align:start;
+        scroll-snap-stop:always;
+      }
     }
     @media print{
       body{background:#fff}
@@ -416,7 +434,11 @@ function applyCapacity(unit,capacity){
 }
 
 function render(){
-  document.getElementById("plans").innerHTML = state.plans.map((plan,pi) => `
+  const plansEl = document.getElementById("plans");
+  const previousWidth = plansEl.clientWidth || 1;
+  const previousPlan = Math.round(plansEl.scrollLeft / previousWidth);
+
+  plansEl.innerHTML = state.plans.map((plan,pi) => `
     <article class="plan">
       <input class="plan-title" data-action="planTitle" data-plan="${pi}" value="${esc(plan.title)}">
 
@@ -514,6 +536,13 @@ function render(){
       </div>
     </article>
   `).join("");
+
+  requestAnimationFrame(() => {
+    const isPortraitSwipe = window.matchMedia("(max-width:980px) and (orientation:portrait)").matches;
+    if(isPortraitSwipe){
+      plansEl.scrollLeft = previousPlan * plansEl.clientWidth;
+    }
+  });
 }
 
 function handleInput(el){
