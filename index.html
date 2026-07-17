@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>エアコン概算見積もり Ver.3</title>
+  <title>エアコン概算見積もり Ver.3.1</title>
   <style>
     :root{
       --navy:#102a4c;
@@ -334,7 +334,7 @@
 <main class="app">
   <header class="topbar">
     <div>
-      <h1>エアコン概算見積もり Ver.3</h1>
+      <h1>エアコン概算見積もり Ver.3.1</h1>
       <p class="subtitle">「新規／買替え」「畳数」「本体価格」の3入力で概算を作成</p>
     </div>
     <div class="top-actions edit-only">
@@ -357,7 +357,7 @@
 </main>
 
 <script>
-const STORAGE_KEY = "aircon-estimate-v4";
+const STORAGE_KEY = "aircon-estimate-v5";
 const CAPACITIES = ["2.2","2.5","2.8","3.6","4.0","5.6","6.3"];
 const TATAMI = {
   "2.2":"6畳用","2.5":"8畳用","2.8":"10畳用",
@@ -461,7 +461,7 @@ function render(){
 
       <div class="plan-total">
         <span>プラン合計</span>
-        <strong>${yen(planTotal(plan))}</strong>
+        <strong data-role="planTotal" data-plan="${pi}">${yen(planTotal(plan))}</strong>
       </div>
 
       ${plan.units.map((unit,ui) => `
@@ -496,7 +496,7 @@ function render(){
             </div>
           </div>
 
-          <div class="summary-chip">
+          <div class="summary-chip" data-role="summary" data-plan="${pi}" data-unit="${ui}">
             ${unit.type === "replacement" ? "買替え" : "新規"} ／
             ${unit.capacity ? TATAMI[unit.capacity] : "畳数未選択"}
           </div>
@@ -537,8 +537,8 @@ function render(){
           </div>
 
           <div class="subtotal">
-            <span>${esc(unit.title)} 小計</span>
-            <strong>${yen(unitTotal(unit))}</strong>
+            <span data-role="subtotalLabel" data-plan="${pi}" data-unit="${ui}">${esc(unit.title)} 小計</span>
+            <strong data-role="unitTotal" data-plan="${pi}" data-unit="${ui}">${yen(unitTotal(unit))}</strong>
           </div>
         </section>
       `).join("")}
@@ -549,7 +549,7 @@ function render(){
 
       <div class="plan-total" style="margin-top:10px;margin-bottom:0">
         <span>プラン合計</span>
-        <strong>${yen(planTotal(plan))}</strong>
+        <strong data-role="planTotal" data-plan="${pi}">${yen(planTotal(plan))}</strong>
       </div>
     </article>
   `).join("");
@@ -562,6 +562,23 @@ function render(){
   });
 }
 
+let autoSaveTimer;
+function scheduleAutoSave(){
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(saveAuto, 180);
+}
+
+function updateCalculatedUI(pi,ui){
+  const plan = state.plans[pi];
+  const unit = plan.units[ui];
+
+  document.querySelectorAll(`[data-role="unitTotal"][data-plan="${pi}"][data-unit="${ui}"]`)
+    .forEach(el => el.textContent = yen(unitTotal(unit)));
+
+  document.querySelectorAll(`[data-role="planTotal"][data-plan="${pi}"]`)
+    .forEach(el => el.textContent = yen(planTotal(plan)));
+}
+
 function handleInput(el){
   const pi = Number(el.dataset.plan);
   const action = el.dataset.action;
@@ -569,21 +586,38 @@ function handleInput(el){
 
   if(action === "planTitle"){
     plan.title = el.value;
-  }else{
-    const ui = Number(el.dataset.unit);
-    const unit = plan.units[ui];
+    scheduleAutoSave();
+    return;
+  }
 
-    if(action === "unitTitle"){
-      unit.title = el.value;
-    }else if(action === "quickPrice"){
-      row(unit,"本体").amount = el.value;
-    }else{
-      const ri = Number(el.dataset.row);
-      unit.rows[ri][action] = el.value;
+  const ui = Number(el.dataset.unit);
+  const unit = plan.units[ui];
+
+  if(action === "unitTitle"){
+    unit.title = el.value;
+    const label = document.querySelector(`[data-role="subtotalLabel"][data-plan="${pi}"][data-unit="${ui}"]`);
+    if(label) label.textContent = `${el.value} 小計`;
+  }else if(action === "quickPrice"){
+    const bodyRow = row(unit,"本体");
+    bodyRow.amount = el.value;
+    const ri = unit.rows.indexOf(bodyRow);
+    const mirror = document.querySelector(`input[data-action="amount"][data-plan="${pi}"][data-unit="${ui}"][data-row="${ri}"]`);
+    if(mirror && mirror !== el) mirror.value = el.value;
+    updateCalculatedUI(pi,ui);
+  }else{
+    const ri = Number(el.dataset.row);
+    unit.rows[ri][action] = el.value;
+
+    if(action === "amount"){
+      if(unit.rows[ri].name === "本体"){
+        const quick = document.querySelector(`input[data-action="quickPrice"][data-plan="${pi}"][data-unit="${ui}"]`);
+        if(quick && quick !== el) quick.value = el.value;
+      }
+      updateCalculatedUI(pi,ui);
     }
   }
-  saveAuto();
-  render();
+
+  scheduleAutoSave();
 }
 function addUnit(pi){
   const plan = state.plans[pi];
