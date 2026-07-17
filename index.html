@@ -1,345 +1,731 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#f4f5f7">
-  <title>3台口・3プラン見積もり比較</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>エアコン概算見積もり Ver.2</title>
   <style>
     :root{
-      --bg:#0f2747;--card:#ffffff;--line:#d8dbe2;--text:#0f172a;
-      --muted:#667085;--accent:#2563eb;--danger:#b42318;
-      --soft:#f4f8fc;--shadow:0 8px 24px rgba(16,24,40,.08)
+      --navy:#102a4c;
+      --navy-2:#173c6a;
+      --blue:#2563eb;
+      --bg:#eef3f8;
+      --card:#ffffff;
+      --line:#d6dee8;
+      --text:#172033;
+      --muted:#667085;
+      --danger:#b42318;
+      --shadow:0 8px 24px rgba(15, 42, 76, .12);
     }
     *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:var(--navy);
+      color:var(--text);
+    }
     button,input{font:inherit}
-    .app{min-height:100vh;padding:12px}
-    .topbar{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap}
-    h1{font-size:20px;margin:0;color:white;}
-    .sub{margin:2px 0 0;color:var(--muted);font-size:12px}
-    .actions{display:flex;gap:8px;flex-wrap:wrap}
-    button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 12px;cursor:pointer;font-weight:700}
-    button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
-    button.danger{color:var(--danger)}
-    .saved-name{width:min(260px,100%);border:1px solid var(--line);border-radius:10px;padding:9px 10px;background:#fff}
+    button{cursor:pointer}
+    .app{min-height:100vh;padding:14px}
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+    h1{margin:0;color:#fff;font-size:22px}
+    .subtitle{margin:4px 0 0;color:#dce8f6;font-size:13px}
+    .top-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .top-actions button,.save-name{
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:9px 12px;
+      background:#fff;
+    }
+    .top-actions .primary{background:var(--blue);color:#fff;border-color:var(--blue);font-weight:800}
+    .top-actions .danger{color:var(--danger);font-weight:800}
+    .save-name{min-width:180px}
 
-    .board{
+    .plans{
       display:grid;
       grid-template-columns:repeat(3,minmax(0,1fr));
-      gap:8px;
-      overflow-x:hidden;
-      padding-bottom:10px;
+      gap:10px;
     }
     .plan{
-      background:var(--card);border:1px solid var(--line);border-radius:14px;
-      box-shadow:var(--shadow);padding:10px;min-width:0
+      background:var(--card);
+      border-radius:16px;
+      padding:12px;
+      box-shadow:var(--shadow);
+      min-width:0;
     }
     .plan-title{
-      width:100%;font-size:18px;font-weight:800;border:1px solid var(--line);
-      border-radius:10px;padding:10px;margin-bottom:8px;text-align:center
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:10px;
+      text-align:center;
+      font-size:18px;
+      font-weight:900;
+      margin-bottom:8px;
     }
-    .grand-total{color:#fff;
-      display:flex;justify-content:space-between;align-items:baseline;gap:8px;
-      background:#163b69;border:1px solid #2f5f99;border-radius:10px;padding:10px;
-      margin-bottom:10px;font-weight:900
+    .plan-total{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+      background:var(--navy-2);
+      color:#fff;
+      border-radius:10px;
+      padding:10px 12px;
+      font-weight:900;
+      margin-bottom:10px;
     }
-    .grand-total.bottom{margin:10px 0 0}
-    .grand-total .amount{font-size:25px}
+    .plan-total strong{font-size:23px}
 
     .unit{
-      border:1px solid var(--line);border-radius:12px;padding:8px;
-      margin-bottom:10px;background:var(--soft)
+      background:var(--bg);
+      border:1px solid var(--line);
+      border-radius:13px;
+      padding:9px;
+      margin-bottom:10px;
     }
-    .unit:last-of-type{margin-bottom:0}
     .unit-title{
-      width:100%;font-size:15px;font-weight:800;border:1px solid var(--line);
-      border-radius:9px;padding:8px;margin-bottom:7px;background:#fff
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:9px;
+      padding:8px;
+      background:#fff;
+      font-weight:900;
+      margin-bottom:8px;
     }
+    .quick{
+      background:#fff;
+      border:1px solid #c4d1df;
+      border-radius:11px;
+      padding:9px;
+      margin-bottom:8px;
+    }
+    .label{
+      font-size:12px;
+      color:var(--muted);
+      font-weight:900;
+      margin-bottom:5px;
+    }
+    .choice-row,.capacity-row{
+      display:flex;
+      gap:5px;
+      flex-wrap:wrap;
+      margin-bottom:9px;
+    }
+    .choice-btn,.capacity-btn{
+      border:1px solid #9db0c6;
+      background:#fff;
+      color:var(--navy);
+      border-radius:999px;
+      padding:6px 11px;
+      font-size:12px;
+      font-weight:900;
+    }
+    .choice-btn.selected,.capacity-btn.selected{
+      background:var(--navy);
+      color:#fff;
+      border-color:var(--navy);
+    }
+    .price-row{
+      display:grid;
+      grid-template-columns:minmax(95px,1fr) minmax(100px,1fr);
+      gap:8px;
+      align-items:center;
+    }
+    .price-row span{font-weight:900}
+    .price-row input{
+      width:100%;
+      border:2px solid #9db0c6;
+      border-radius:9px;
+      padding:9px;
+      text-align:right;
+      font-weight:900;
+    }
+    .summary-chip{
+      background:#e9f1fb;
+      color:var(--navy);
+      border-radius:9px;
+      padding:7px 9px;
+      font-weight:900;
+      font-size:13px;
+      margin-bottom:8px;
+    }
+
     .header-row,.item-row{
       display:grid;
-      grid-template-columns:54px minmax(92px,1.45fr) minmax(76px,.9fr) 36px;
-      gap:4px;align-items:center
+      grid-template-columns:54px minmax(95px,1.35fr) minmax(78px,.9fr) 34px;
+      gap:5px;
+      align-items:center;
     }
-    .header-row{color:var(--muted);font-size:11px;font-weight:700;padding:0 2px 4px}
+    .header-row{
+      color:var(--muted);
+      font-size:11px;
+      font-weight:800;
+      padding:0 2px 5px;
+    }
     .item-row{margin-bottom:5px}
     .item-row input{
-      width:100%;border:1px solid var(--line);border-radius:8px;
-      padding:8px 6px;min-width:0;font-size:13px;background:#fff
+      width:100%;
+      min-width:0;
+      border:1px solid var(--line);
+      border-radius:8px;
+      padding:8px 6px;
+      background:#fff;
     }
     .item-row input[type="number"]{text-align:right}
-    .use-toggle{height:36px;padding:0 5px;font-size:10px;white-space:nowrap}
-    .use-toggle.off{color:var(--muted);background:#eef0f3}
-    .item-row.disabled-row input{opacity:.48;background:#eef0f3}
-    .remove{width:36px;height:36px;padding:0;color:var(--danger);background:#fff}
-    .unit-subtotal{
-      display:flex;justify-content:space-between;align-items:center;
-      border-top:1px solid var(--line);padding-top:7px;margin-top:5px;
-      font-weight:800;font-size:13px
+    .toggle{
+      border:1px solid var(--line);
+      border-radius:8px;
+      background:#fff;
+      height:36px;
+      padding:0 4px;
+      font-size:10px;
+      font-weight:900;
     }
-    .unit-subtotal .amount{font-size:17px}
-    .unit-controls{display:flex;gap:6px;margin-top:6px}
-    .unit-controls button{flex:1;padding:7px 6px;font-size:12px}
+    .toggle.off{background:#e9edf2;color:var(--muted)}
+    .disabled-row input{background:#e9edf2;opacity:.55}
+    .remove{
+      border:1px solid var(--line);
+      border-radius:8px;
+      background:#fff;
+      color:var(--danger);
+      width:34px;
+      height:34px;
+      font-weight:900;
+    }
+    .subtotal{
+      display:flex;
+      justify-content:space-between;
+      border-top:1px solid var(--line);
+      padding-top:8px;
+      margin-top:7px;
+      font-weight:900;
+    }
+    .subtotal strong{font-size:18px}
+    .unit-actions{
+      display:flex;
+      gap:6px;
+      flex-wrap:wrap;
+      margin-top:7px;
+    }
+    .unit-actions button,.add-unit{
+      border:1px solid var(--line);
+      border-radius:9px;
+      background:#fff;
+      padding:8px;
+      font-size:12px;
+      font-weight:900;
+    }
+    .unit-actions button{flex:1}
+    .unit-actions .danger{color:var(--danger)}
+    .add-unit{
+      width:100%;
+      color:var(--navy);
+      background:#edf4fb;
+      border-color:#b7c8dc;
+      margin-top:2px;
+    }
 
-    .status{min-height:22px;margin-top:6px;font-size:13px;color:var(--muted)}
-    .saved-list{margin-top:12px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px}
-    .saved-list h2{font-size:15px;margin:0 0 8px}
-    .saved-entry{display:flex;gap:8px;align-items:center;padding:7px 0;border-top:1px solid #eceef2}
-    .saved-entry:first-of-type{border-top:none}
-    .saved-entry span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .saved-entry button{padding:7px 9px}
+    .saved{
+      margin-top:14px;
+      background:#fff;
+      border-radius:13px;
+      padding:11px;
+    }
+    .saved h2{font-size:16px;margin:0 0 8px}
+    .saved-entry{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      border-top:1px solid #eceff3;
+      padding:8px 0;
+    }
+    .saved-entry:first-child{border-top:none}
+    .saved-entry span{flex:1}
+    .saved-entry button{
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:8px;
+      padding:7px 10px;
+      font-weight:800;
+    }
+    .status{color:#fff;min-height:22px;margin-top:8px;font-size:13px}
 
     body.presentation .edit-only,
+    body.presentation .quick,
+    body.presentation .unit-actions,
+    body.presentation .add-unit,
+    body.presentation .saved,
     body.presentation .remove,
-    body.presentation .unit-controls,
-    body.presentation .saved-list,
-    body.presentation .topbar .sub{display:none!important}
-    body.presentation .item-row.disabled-row{display:none!important}
-    body.presentation .app{padding:6px;background:#fff}
-    body.presentation .board{gap:6px;overflow:visible}
-    body.presentation .plan{box-shadow:none;border-radius:8px;padding:7px;min-width:0}
-    body.presentation input{border-color:transparent;background:transparent;padding-left:2px;padding-right:2px}
-    body.presentation .plan-title{font-size:18px}
-    body.presentation .header-row,body.presentation .item-row{
-      grid-template-columns:minmax(105px,1.5fr) minmax(78px,.9fr)
+    body.presentation .subtitle{
+      display:none!important;
+    }
+    body.presentation{background:#fff}
+    body.presentation .app{padding:6px}
+    body.presentation .plan{box-shadow:none;border:1px solid var(--line)}
+    body.presentation .disabled-row{display:none}
+    body.presentation .header-row,
+    body.presentation .item-row{
+      grid-template-columns:minmax(110px,1.4fr) minmax(80px,.8fr);
+    }
+    body.presentation input{
+      border-color:transparent;
+      background:transparent;
+      padding-left:2px;
+      padding-right:2px;
     }
 
-    @media (orientation:portrait){
-      .board{
-        display:flex;overflow-x:auto;scroll-snap-type:x mandatory;
-        gap:10px;padding-bottom:12px
-      }
-      .plan{flex:0 0 100%;min-width:100%;scroll-snap-align:start}
-    }
-    @media (orientation:landscape){
-      .board{grid-template-columns:repeat(3,minmax(0,1fr));overflow-x:hidden}
-      .plan{min-width:0}
-      .plan-title{font-size:16px;padding:8px}
-      .grand-total .amount{font-size:21px}
-      .unit{padding:6px}
-      .unit-title{font-size:14px;padding:7px}
-      .header-row,.item-row{
-        grid-template-columns:46px minmax(78px,1.4fr) minmax(66px,.9fr) 32px;
-        gap:3px
-      }
-      .item-row input{padding:7px 5px;font-size:12px}
-      .use-toggle{height:32px;font-size:9px}
-      .remove{width:32px;height:32px}
-      .unit-subtotal .amount{font-size:15px}
-      button{padding:7px 8px}
+    @media (max-width:980px){
+      .plans{grid-template-columns:1fr}
     }
     @media print{
-      .topbar,.saved-list,.status,.unit-controls,.remove,.use-toggle{display:none!important}
-      .item-row.disabled-row{display:none!important}
-      body{background:#fff}.app{padding:0}.board{overflow:visible;gap:6px}
-      .plan{box-shadow:none;break-inside:avoid}
-      .header-row,.item-row{grid-template-columns:minmax(105px,1.5fr) minmax(78px,.9fr)}
+      body{background:#fff}
+      .topbar,.saved,.status,.edit-only,.quick,.unit-actions,.add-unit,.remove{display:none!important}
+      .app{padding:0}
+      .plans{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+      .plan{box-shadow:none;border:1px solid var(--line)}
+      .disabled-row{display:none}
+      .header-row,.item-row{grid-template-columns:minmax(110px,1.4fr) minmax(80px,.8fr)}
     }
   </style>
 </head>
 <body>
 <main class="app">
-  <section class="topbar">
+  <header class="topbar">
     <div>
-      <h1>3台口・3プラン見積もり比較</h1>
-      <p class="sub">縦画面は1プランずつ、横画面はA・B・Cを3列表示します。</p>
+      <h1>エアコン概算見積もり Ver.2</h1>
+      <p class="subtitle">「新規／買替え」「畳数」「本体価格」の3入力で概算を作成</p>
     </div>
-    <div class="actions edit-only">
-      <input id="saveName" class="saved-name" placeholder="保存名（例：田中様 3台口）">
+    <div class="top-actions edit-only">
+      <input id="saveName" class="save-name" placeholder="保存名（例：田中様）">
       <button id="saveBtn" class="primary">保存</button>
       <button id="presentationBtn">プレゼン表示</button>
       <button id="printBtn">印刷 / PDF</button>
-      <button id="clearBtn" class="danger">全消去</button>
+      <button id="resetBtn" class="danger">全消去</button>
     </div>
-  </section>
+  </header>
 
-  <section id="board" class="board"></section>
-  <div id="status" class="status" aria-live="polite"></div>
+  <section id="plans" class="plans"></section>
+  <div id="status" class="status"></div>
 
-  <section class="saved-list edit-only">
+  <section class="saved edit-only">
     <h2>保存した見積もり</h2>
-    <div id="savedItems"></div>
+    <div id="savedList"></div>
   </section>
 </main>
 
 <script>
-const MAX_ROWS=15;
-const STORAGE_KEY="estimateCompareApp.3units.v1";
-const initialItems=["本体","工事費用","保証","取り外し費用","リサイクル","値引","複数台値引"];
+const STORAGE_KEY = "aircon-estimate-v2";
+const CAPACITIES = ["2.2","2.5","2.8","3.6","4.0","5.6","6.3"];
+const TATAMI = {
+  "2.2":"6畳用","2.5":"8畳用","2.8":"10畳用",
+  "3.6":"12畳用","4.0":"14畳用","5.6":"18畳用","6.3":"20畳用"
+};
+const INSTALLATION = {
+  "2.2":20350,"2.5":20350,"2.8":20350,"3.6":20350,
+  "4.0":24750,"5.6":24750,"6.3":28050
+};
+const BASE_ROWS = ["本体","工事費用","保証","取り外し費用","リサイクル","値引","複数台値引"];
+const MAX_UNITS = 10;
 
-function createUnit(index){
+function blankUnit(index){
+  const type = "replacement";
   return {
-    title:`${index}台目`,
-    rows:initialItems.map(name=>({name,amount:"",enabled:true}))
+    title: `${index}台目`,
+    type,
+    capacity: "",
+    rows: BASE_ROWS.map(name => ({
+      name,
+      amount:
+        name === "取り外し費用" ? "6600" :
+        name === "リサイクル" ? "4070" : "",
+      enabled: true
+    }))
   };
 }
-function createPlan(title){
-  return {title,units:[createUnit(1),createUnit(2),createUnit(3)]};
+function blankPlan(name){
+  return { title:name, units:[blankUnit(1),blankUnit(2),blankUnit(3)] };
 }
-const state={plans:[createPlan("プランA"),createPlan("プランB"),createPlan("プランC")]};
+let state = {
+  plans:[blankPlan("プランA"),blankPlan("プランB"),blankPlan("プランC")]
+};
 
-function yen(v){return new Intl.NumberFormat("ja-JP").format(Number(v)||0)+"円"}
-function esc(s){
-  return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;")
-  .replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+function esc(v){
+  return String(v ?? "")
+    .replaceAll("&","&amp;").replaceAll("<","&lt;")
+    .replaceAll(">","&gt;").replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
 }
+function yen(v){
+  return new Intl.NumberFormat("ja-JP").format(Number(v) || 0) + "円";
+}
+function row(unit,name){ return unit.rows.find(r => r.name === name); }
 function unitTotal(unit){
-  return unit.rows.reduce((sum,row)=>sum+(row.enabled===false?0:(Number(row.amount)||0)),0);
+  return unit.rows.reduce((sum,r) => sum + (r.enabled === false ? 0 : (Number(r.amount) || 0)), 0);
 }
-function planTotal(plan){return plan.units.reduce((sum,u)=>sum+unitTotal(u),0)}
-
-function render(){
-  document.getElementById("board").innerHTML=state.plans.map((plan,pi)=>`
-    <article class="plan">
-      <input class="plan-title" value="${esc(plan.title)}" data-action="planTitle" data-plan="${pi}" aria-label="プラン名">
-
-      <div class="grand-total">
-        <span>プラン合計</span><span class="amount plan-total">${yen(planTotal(plan))}</span>
-      </div>
-
-      ${plan.units.map((unit,ui)=>`
-        <section class="unit">
-          <input class="unit-title" value="${esc(unit.title)}" data-action="unitTitle" data-plan="${pi}" data-unit="${ui}" aria-label="台数名">
-          <div class="header-row">
-            <span class="edit-only">使用</span><span>項目</span><span>金額</span><span class="edit-only"></span>
-          </div>
-          ${unit.rows.map((row,ri)=>`
-            <div class="item-row ${row.enabled===false?"disabled-row":""}">
-              <button class="use-toggle edit-only ${row.enabled===false?"off":""}"
-                data-action="toggle" data-plan="${pi}" data-unit="${ui}" data-row="${ri}">
-                ${row.enabled===false?"使わない":"使う"}
-              </button>
-              <input type="text" value="${esc(row.name)}" data-action="name"
-                data-plan="${pi}" data-unit="${ui}" data-row="${ri}" placeholder="項目名">
-              <input type="number" inputmode="numeric" step="1" value="${esc(row.amount)}"
-                data-action="amount" data-plan="${pi}" data-unit="${ui}" data-row="${ri}" placeholder="0">
-              <button class="remove edit-only" data-action="remove"
-                data-plan="${pi}" data-unit="${ui}" data-row="${ri}" aria-label="この行を削除">×</button>
-            </div>`).join("")}
-          <div class="unit-controls edit-only">
-            <button data-action="add" data-plan="${pi}" data-unit="${ui}" ${unit.rows.length>=MAX_ROWS?"disabled":""}>＋ 行を追加</button>
-            <button data-action="copyUnit" data-plan="${pi}" data-unit="${ui}">次の台へコピー</button>
-          </div>
-          <div class="unit-subtotal">
-            <span>${esc(unit.title)} 小計</span><span class="amount">${yen(unitTotal(unit))}</span>
-          </div>
-        </section>`).join("")}
-
-      <div class="grand-total bottom">
-        <span>プラン合計</span><span class="amount plan-total">${yen(planTotal(plan))}</span>
-      </div>
-    </article>`).join("");
+function planTotal(plan){
+  return plan.units.reduce((sum,u) => sum + unitTotal(u), 0);
 }
-
-function updateInput(input){
-  const pi=Number(input.dataset.plan),a=input.dataset.action;
-  if(a==="planTitle") state.plans[pi].title=input.value;
-  else{
-    const ui=Number(input.dataset.unit);
-    if(a==="unitTitle") state.plans[pi].units[ui].title=input.value;
-    else state.plans[pi].units[ui].rows[Number(input.dataset.row)][a]=input.value;
-  }
-  autosave();renderTotalsOnly();
+function showStatus(text){
+  const el = document.getElementById("status");
+  el.textContent = text;
+  clearTimeout(showStatus.timer);
+  showStatus.timer = setTimeout(() => el.textContent = "", 3000);
 }
-function renderTotalsOnly(){
-  document.querySelectorAll(".plan").forEach((planEl,pi)=>{
-    const plan=state.plans[pi];
-    planEl.querySelectorAll(".unit-subtotal .amount").forEach((el,ui)=>el.textContent=yen(unitTotal(plan.units[ui])));
-    planEl.querySelectorAll(".plan-total").forEach(el=>el.textContent=yen(planTotal(plan)));
-  });
-}
-function addRow(pi,ui){
-  const rows=state.plans[pi].units[ui].rows;
-  if(rows.length>=MAX_ROWS){showStatus("1台につき15行までです。");return}
-  rows.push({name:"",amount:"",enabled:true});autosave();render();
-}
-function removeRow(pi,ui,ri){
-  const rows=state.plans[pi].units[ui].rows;
-  rows.splice(ri,1);
-  if(!rows.length)rows.push({name:"",amount:"",enabled:true});
-  autosave();render();
-}
-function toggleRow(pi,ui,ri){
-  const row=state.plans[pi].units[ui].rows[ri];
-  row.enabled=row.enabled===false?true:false;autosave();render();
-}
-function copyUnit(pi,ui){
-  const target=ui+1;
-  if(target>=3){showStatus("3台目なので次の台はありません。");return}
-  const title=state.plans[pi].units[target].title;
-  state.plans[pi].units[target]=JSON.parse(JSON.stringify(state.plans[pi].units[ui]));
-  state.plans[pi].units[target].title=title;
-  autosave();render();showStatus(`${ui+1}台目を${target+1}台目へコピーしました。`);
+function saveAuto(){
+  const store = getStore();
+  store.autosave = JSON.parse(JSON.stringify(state));
+  setStore(store);
 }
 function getStore(){
-  try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||{autosave:null,saves:[]}}
-  catch{return{autosave:null,saves:[]}}
+  try{
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {autosave:null,saves:[]};
+  }catch{
+    return {autosave:null,saves:[]};
+  }
 }
-function setStore(d){localStorage.setItem(STORAGE_KEY,JSON.stringify(d))}
-function autosave(){const d=getStore();d.autosave=JSON.parse(JSON.stringify(state));setStore(d)}
-function restore(){
-  const d=getStore();
-  if(d.autosave?.plans?.length===3)state.plans=d.autosave.plans;
+function setStore(data){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
-function saveNamed(){
-  const input=document.getElementById("saveName"),name=input.value.trim()||new Date().toLocaleString("ja-JP");
-  const d=getStore();
-  d.saves.unshift({id:(crypto.randomUUID?crypto.randomUUID():String(Date.now())),name,savedAt:new Date().toISOString(),state:JSON.parse(JSON.stringify(state))});
-  d.saves=d.saves.slice(0,30);setStore(d);input.value="";renderSaved();showStatus(`「${name}」を保存しました。`);
+
+function applyType(unit,type){
+  unit.type = type;
+  const removal = row(unit,"取り外し費用");
+  const recycle = row(unit,"リサイクル");
+
+  if(type === "replacement"){
+    removal.enabled = true;
+    recycle.enabled = true;
+    if(!String(removal.amount || "").trim()) removal.amount = "6600";
+    if(!String(recycle.amount || "").trim()) recycle.amount = "4070";
+  }else{
+    removal.enabled = false;
+    recycle.enabled = false;
+  }
 }
-function loadNamed(id){
-  const found=getStore().saves.find(x=>x.id===id);if(!found)return;
-  state.plans=JSON.parse(JSON.stringify(found.state.plans));autosave();render();showStatus(`「${found.name}」を読み込みました。`);
+function applyCapacity(unit,capacity){
+  unit.capacity = capacity;
+  const construction = row(unit,"工事費用");
+  construction.enabled = true;
+  construction.amount = String(INSTALLATION[capacity]);
 }
-function deleteNamed(id){
-  const d=getStore();d.saves=d.saves.filter(x=>x.id!==id);setStore(d);renderSaved();showStatus("保存データを削除しました。");
+
+function render(){
+  document.getElementById("plans").innerHTML = state.plans.map((plan,pi) => `
+    <article class="plan">
+      <input class="plan-title" data-action="planTitle" data-plan="${pi}" value="${esc(plan.title)}">
+
+      <div class="plan-total">
+        <span>プラン合計</span>
+        <strong>${yen(planTotal(plan))}</strong>
+      </div>
+
+      ${plan.units.map((unit,ui) => `
+        <section class="unit">
+          <input class="unit-title" data-action="unitTitle" data-plan="${pi}" data-unit="${ui}" value="${esc(unit.title)}">
+
+          <div class="quick edit-only">
+            <div class="label">① 新規／買替え</div>
+            <div class="choice-row">
+              <button class="choice-btn ${unit.type === "replacement" ? "selected" : ""}"
+                data-action="type" data-plan="${pi}" data-unit="${ui}" data-type="replacement">買替え</button>
+              <button class="choice-btn ${unit.type === "new" ? "selected" : ""}"
+                data-action="type" data-plan="${pi}" data-unit="${ui}" data-type="new">新規</button>
+            </div>
+
+            <div class="label">② 容量</div>
+            <div class="capacity-row">
+              ${CAPACITIES.map(cap => `
+                <button class="capacity-btn ${unit.capacity === cap ? "selected" : ""}"
+                  data-action="capacity" data-plan="${pi}" data-unit="${ui}" data-capacity="${cap}">
+                  ${cap}
+                </button>
+              `).join("")}
+            </div>
+
+            <div class="label">③ 本体価格</div>
+            <div class="price-row">
+              <span>${unit.capacity ? TATAMI[unit.capacity] : "容量未選択"}</span>
+              <input type="number" inputmode="numeric"
+                data-action="quickPrice" data-plan="${pi}" data-unit="${ui}"
+                value="${esc(row(unit,"本体").amount)}" placeholder="0">
+            </div>
+          </div>
+
+          <div class="summary-chip">
+            ${unit.type === "replacement" ? "買替え" : "新規"} ／
+            ${unit.capacity ? TATAMI[unit.capacity] : "畳数未選択"}
+          </div>
+
+          <div class="header-row">
+            <span class="edit-only">使用</span>
+            <span>項目</span>
+            <span>金額</span>
+            <span class="edit-only"></span>
+          </div>
+
+          ${unit.rows.map((r,ri) => `
+            <div class="item-row ${r.enabled === false ? "disabled-row" : ""}">
+              <button class="toggle edit-only ${r.enabled === false ? "off" : ""}"
+                data-action="toggle" data-plan="${pi}" data-unit="${ui}" data-row="${ri}">
+                ${r.enabled === false ? "使わない" : "使う"}
+              </button>
+
+              <input type="text"
+                data-action="name" data-plan="${pi}" data-unit="${ui}" data-row="${ri}"
+                value="${esc(r.name)}" placeholder="項目名">
+
+              <input type="number" inputmode="numeric"
+                data-action="amount" data-plan="${pi}" data-unit="${ui}" data-row="${ri}"
+                value="${esc(r.amount)}" placeholder="0">
+
+              <button class="remove edit-only"
+                data-action="removeRow" data-plan="${pi}" data-unit="${ui}" data-row="${ri}">×</button>
+            </div>
+          `).join("")}
+
+          <div class="unit-actions edit-only">
+            <button data-action="addRow" data-plan="${pi}" data-unit="${ui}">＋ 項目追加</button>
+            <button data-action="copyUnit" data-plan="${pi}" data-unit="${ui}">次の台へコピー</button>
+            ${plan.units.length > 1
+              ? `<button class="danger" data-action="deleteUnit" data-plan="${pi}" data-unit="${ui}">この台を削除</button>`
+              : ""}
+          </div>
+
+          <div class="subtotal">
+            <span>${esc(unit.title)} 小計</span>
+            <strong>${yen(unitTotal(unit))}</strong>
+          </div>
+        </section>
+      `).join("")}
+
+      <button class="add-unit edit-only" data-action="addUnit" data-plan="${pi}">
+        ＋ もう1台増やす
+      </button>
+
+      <div class="plan-total" style="margin-top:10px;margin-bottom:0">
+        <span>プラン合計</span>
+        <strong>${yen(planTotal(plan))}</strong>
+      </div>
+    </article>
+  `).join("");
 }
+
+function handleInput(el){
+  const pi = Number(el.dataset.plan);
+  const action = el.dataset.action;
+  const plan = state.plans[pi];
+
+  if(action === "planTitle"){
+    plan.title = el.value;
+  }else{
+    const ui = Number(el.dataset.unit);
+    const unit = plan.units[ui];
+
+    if(action === "unitTitle"){
+      unit.title = el.value;
+    }else if(action === "quickPrice"){
+      row(unit,"本体").amount = el.value;
+    }else{
+      const ri = Number(el.dataset.row);
+      unit.rows[ri][action] = el.value;
+    }
+  }
+  saveAuto();
+  render();
+}
+function addUnit(pi){
+  const plan = state.plans[pi];
+  if(plan.units.length >= MAX_UNITS){
+    showStatus("最大10台まで追加できます。");
+    return;
+  }
+  plan.units.push(blankUnit(plan.units.length + 1));
+  saveAuto();
+  render();
+  showStatus(`${plan.units.length}台目を追加しました。`);
+}
+function deleteUnit(pi,ui){
+  const plan = state.plans[pi];
+  if(plan.units.length <= 1) return;
+  plan.units.splice(ui,1);
+  plan.units.forEach((u,index) => u.title = `${index + 1}台目`);
+  saveAuto();
+  render();
+}
+function copyUnit(pi,ui){
+  const plan = state.plans[pi];
+  let target = ui + 1;
+
+  if(target >= plan.units.length){
+    if(plan.units.length >= MAX_UNITS){
+      showStatus("これ以上追加できません。");
+      return;
+    }
+    plan.units.push(blankUnit(plan.units.length + 1));
+  }
+
+  const targetTitle = plan.units[target].title;
+  plan.units[target] = JSON.parse(JSON.stringify(plan.units[ui]));
+  plan.units[target].title = targetTitle;
+
+  saveAuto();
+  render();
+  showStatus(`${ui + 1}台目を${target + 1}台目へコピーしました。`);
+}
+
+document.getElementById("plans").addEventListener("input",e => {
+  if(e.target.matches("input[data-action]")) handleInput(e.target);
+});
+document.getElementById("plans").addEventListener("click",e => {
+  const btn = e.target.closest("button[data-action]");
+  if(!btn) return;
+
+  const pi = Number(btn.dataset.plan);
+  const ui = Number(btn.dataset.unit);
+  const ri = Number(btn.dataset.row);
+  const unit = state.plans[pi]?.units[ui];
+
+  switch(btn.dataset.action){
+    case "type":
+      applyType(unit,btn.dataset.type);
+      saveAuto();
+      render();
+      showStatus(btn.dataset.type === "replacement"
+        ? "買替え：取り外し・リサイクルを有効にしました。"
+        : "新規：取り外し・リサイクルを使わない設定にしました。");
+      break;
+
+    case "capacity":
+      applyCapacity(unit,btn.dataset.capacity);
+      saveAuto();
+      render();
+      showStatus(`${btn.dataset.capacity}kWを選択し、工事費を自動入力しました。`);
+      break;
+
+    case "toggle":
+      unit.rows[ri].enabled = unit.rows[ri].enabled === false;
+      saveAuto();
+      render();
+      break;
+
+    case "removeRow":
+      unit.rows.splice(ri,1);
+      saveAuto();
+      render();
+      break;
+
+    case "addRow":
+      unit.rows.push({name:"",amount:"",enabled:true});
+      saveAuto();
+      render();
+      break;
+
+    case "addUnit":
+      addUnit(pi);
+      break;
+
+    case "deleteUnit":
+      if(confirm("この1台分を削除しますか？")) deleteUnit(pi,ui);
+      break;
+
+    case "copyUnit":
+      copyUnit(pi,ui);
+      break;
+  }
+});
+
 function renderSaved(){
-  const c=document.getElementById("savedItems"),d=getStore();
-  if(!d.saves.length){c.innerHTML='<div style="color:var(--muted);font-size:13px">まだ保存されていません。</div>';return}
-  c.innerHTML=d.saves.map(x=>`<div class="saved-entry">
-    <span><strong>${esc(x.name)}</strong><br><small>${esc(new Date(x.savedAt).toLocaleString("ja-JP"))}</small></span>
-    <button data-load-id="${x.id}">開く</button>
-    <button class="danger" data-delete-id="${x.id}">削除</button>
-  </div>`).join("");
+  const store = getStore();
+  const wrap = document.getElementById("savedList");
+
+  if(!store.saves.length){
+    wrap.innerHTML = '<div style="color:var(--muted);font-size:13px">まだ保存されていません。</div>';
+    return;
+  }
+
+  wrap.innerHTML = store.saves.map(item => `
+    <div class="saved-entry">
+      <span>
+        <strong>${esc(item.name)}</strong><br>
+        <small>${esc(new Date(item.savedAt).toLocaleString("ja-JP"))}</small>
+      </span>
+      <button data-load="${item.id}">開く</button>
+      <button data-delete="${item.id}" style="color:var(--danger)">削除</button>
+    </div>
+  `).join("");
 }
-function clearAll(){
-  if(!confirm("入力内容をすべて消しますか？"))return;
-  state.plans=[createPlan("プランA"),createPlan("プランB"),createPlan("プランC")];
-  autosave();render();showStatus("入力内容を消去しました。");
-}
-function togglePresentation(){
+
+document.getElementById("saveBtn").addEventListener("click",() => {
+  const input = document.getElementById("saveName");
+  const name = input.value.trim() || new Date().toLocaleString("ja-JP");
+  const store = getStore();
+
+  store.saves.unshift({
+    id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+    name,
+    savedAt: new Date().toISOString(),
+    state: JSON.parse(JSON.stringify(state))
+  });
+  store.saves = store.saves.slice(0,30);
+  setStore(store);
+
+  input.value = "";
+  renderSaved();
+  showStatus(`「${name}」を保存しました。`);
+});
+
+document.getElementById("savedList").addEventListener("click",e => {
+  const load = e.target.closest("[data-load]");
+  const del = e.target.closest("[data-delete]");
+  const store = getStore();
+
+  if(load){
+    const item = store.saves.find(x => x.id === load.dataset.load);
+    if(item){
+      state = JSON.parse(JSON.stringify(item.state));
+      saveAuto();
+      render();
+      showStatus(`「${item.name}」を読み込みました。`);
+    }
+  }
+
+  if(del && confirm("この保存データを削除しますか？")){
+    store.saves = store.saves.filter(x => x.id !== del.dataset.delete);
+    setStore(store);
+    renderSaved();
+  }
+});
+
+document.getElementById("presentationBtn").addEventListener("click",() => {
   document.body.classList.toggle("presentation");
-  document.getElementById("presentationBtn").textContent=
-    document.body.classList.contains("presentation")?"編集画面に戻る":"プレゼン表示";
-}
-function showStatus(m){
-  const e=document.getElementById("status");e.textContent=m;
-  clearTimeout(showStatus.t);showStatus.t=setTimeout(()=>e.textContent="",3000);
-}
-
-document.getElementById("board").addEventListener("input",e=>{
-  if(e.target.matches("input[data-action]"))updateInput(e.target);
+  document.getElementById("presentationBtn").textContent =
+    document.body.classList.contains("presentation") ? "編集画面に戻る" : "プレゼン表示";
 });
-document.getElementById("board").addEventListener("click",e=>{
-  const b=e.target.closest("button[data-action]");if(!b)return;
-  const pi=Number(b.dataset.plan),ui=Number(b.dataset.unit),ri=Number(b.dataset.row),a=b.dataset.action;
-  if(a==="add")addRow(pi,ui);
-  if(a==="remove")removeRow(pi,ui,ri);
-  if(a==="toggle")toggleRow(pi,ui,ri);
-  if(a==="copyUnit")copyUnit(pi,ui);
-});
-document.getElementById("saveBtn").addEventListener("click",saveNamed);
-document.getElementById("presentationBtn").addEventListener("click",togglePresentation);
-document.getElementById("printBtn").addEventListener("click",()=>window.print());
-document.getElementById("clearBtn").addEventListener("click",clearAll);
-document.getElementById("savedItems").addEventListener("click",e=>{
-  const l=e.target.closest("[data-load-id]"),d=e.target.closest("[data-delete-id]");
-  if(l)loadNamed(l.dataset.loadId);
-  if(d&&confirm("この保存データを削除しますか？"))deleteNamed(d.dataset.deleteId);
+document.getElementById("printBtn").addEventListener("click",() => window.print());
+document.getElementById("resetBtn").addEventListener("click",() => {
+  if(!confirm("すべての入力内容を初期状態に戻しますか？")) return;
+  state = {
+    plans:[blankPlan("プランA"),blankPlan("プランB"),blankPlan("プランC")]
+  };
+  saveAuto();
+  render();
 });
 
-restore();render();renderSaved();
+const stored = getStore();
+if(stored.autosave?.plans?.length === 3){
+  state = stored.autosave;
+}
+
+render();
+renderSaved();
 </script>
 </body>
 </html>
